@@ -6,14 +6,14 @@ before:
 builds:
   - env:
       - CGO_ENABLED=0
-    main: ./cmd/gotemplate/main.go
+    main: ./cmd/go-read-burn/main.go
     mod_timestamp: "{{ .CommitTimestamp }}"
     goos:
       - linux
       - windows
       - darwin
     ldflags:
-      - -s -w -X github.com/danstis/gotemplate/internal/version.Version={{.Version}}
+      - -s -w -X github.com/danstis/go-read-burn/internal/version.Version={{.Version}}
     binary: example
 archives:
   - replacements:
