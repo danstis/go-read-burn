@@ -59,7 +59,7 @@ jobs:
         run: go test -v -race -coverprofile=coverage.out -covermode=atomic -json ./... > test-report.out
 
       - name: Go Vet
-        run: go vet ./...
+        run: go vet ./... 2> govet-report.out
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master # https://github.com/marketplace/actions/sonarcloud-scan
