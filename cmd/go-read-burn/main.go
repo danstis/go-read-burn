@@ -37,6 +37,8 @@ func main() {
 	r.HandleFunc("/", IndexHandler)
 	r.HandleFunc("/create", CreateHandler).Methods("POST")
 	r.HandleFunc("/get/{key}", SecretHandler)
+	s := http.StripPrefix("/static/", http.FileServer(http.Dir("./static/")))
+	r.PathPrefix("/static/").Handler(s)
 	http.Handle("/", r)
 
 	templates = template.Must(template.ParseGlob("views/*.html"))
