@@ -30,7 +30,7 @@ var (
 )
 
 type Config struct {
-	DBPath string `default:"db/secrets.db"`
+	DBPath string `default:"db/secrets.db" split_words:"true"`
 }
 
 // Main entry point for the app.
