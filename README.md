@@ -4,7 +4,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/danstis/go-read-burn?style=flat-square)](https://goreportcard.com/report/github.com/danstis/go-read-burn)
 [![PkgGoDev](https://pkg.go.dev/badge/github.com/danstis/go-read-burn)](https://pkg.go.dev/github.com/danstis/go-read-burn)
 [![Release](https://img.shields.io/github/release/danstis/go-read-burn.svg?style=flat-square)](https://github.com/danstis/go-read-burn/releases/latest)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=danstis_rmstale&metric=alert_status)](https://sonarcloud.io/dashboard?id=danstis_rmstale)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=danstis_go-read-burn&metric=alert_status)](https://sonarcloud.io/dashboard?id=danstis_go-read-burn)
 
 go-read-burn is a shameless re-creation of the fantastic Node.JS app [Read2Burn](https://www.read2burn.com/) by Wemove, written in Go.
 
