@@ -27,3 +27,4 @@ _testmain.go
 
 # Project specific
 /db/*
+deploy/.env
