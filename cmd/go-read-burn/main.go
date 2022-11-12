@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"embed"
 	"fmt"
 	"log"
 	"net/http"
@@ -14,20 +15,40 @@ import (
 	"github.com/boltdb/bolt"
 	"github.com/danstis/go-read-burn/internal/version"
 	"github.com/gorilla/mux"
+	"github.com/kelseyhightower/envconfig"
 )
 
+//go:embed all:views/*
+var views embed.FS
+
+//go:embed static/*
+var static embed.FS
+
 var (
-	dbPath    = path.Join("..", "..", "db", "secrets.db")
 	db        *bolt.DB
 	templates *template.Template
 )
+
+type Config struct {
+	DBPath string `default:"db/secrets.db"`
+}
 
 // Main entry point for the app.
 func main() {
 	log.Printf("Version %q", version.Version)
 
+	// Read config
+	var config Config
 	var err error
-	db, err = bolt.Open(dbPath, 0644, nil)
+	if err = envconfig.Process("GRB", &config); err != nil {
+		log.Println(err)
+	}
+
+	// Open the DB
+	if err = createDBDir(config.DBPath); err != nil {
+		log.Fatalf("failed to create database directory: %v", err)
+	}
+	db, err = bolt.Open(config.DBPath, 0644, nil)
 	if err != nil {
 		log.Println(err)
 	}
@@ -37,11 +58,11 @@ func main() {
 	r.HandleFunc("/", IndexHandler)
 	r.HandleFunc("/create", CreateHandler).Methods("POST")
 	r.HandleFunc("/get/{key}", SecretHandler)
-	s := http.StripPrefix("/static/", http.FileServer(http.Dir("./static/")))
+	s := http.StripPrefix("/static/", http.FileServer(http.FS(static)))
 	r.PathPrefix("/static/").Handler(s)
 	http.Handle("/", r)
 
-	templates = template.Must(template.ParseGlob("views/*.html"))
+	templates = template.Must(template.ParseFS(views, "views/*.html"))
 
 	srv := &http.Server{
 		Handler:      r,
@@ -80,6 +101,11 @@ func main() {
 		log.Println(err)
 	}
 	os.Exit(0)
+}
+
+func createDBDir(p string) error {
+	dir := path.Dir(p)
+	return os.MkdirAll(dir, os.ModePerm)
 }
 
 func IndexHandler(w http.ResponseWriter, r *http.Request) {

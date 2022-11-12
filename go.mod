@@ -5,6 +5,7 @@ go 1.19
 require (
 	github.com/boltdb/bolt v1.3.1
 	github.com/gorilla/mux v1.8.0
+	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/uptrace/opentelemetry-go-extra/otelzap v0.1.17
 	go.opentelemetry.io/otel v1.10.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.10.0

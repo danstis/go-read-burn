@@ -26,5 +26,5 @@ _testmain.go
 /.vscode
 
 # Project specific
-/db/*
+*/secrets.db*
 deploy/.env
