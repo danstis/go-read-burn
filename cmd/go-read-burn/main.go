@@ -14,6 +14,7 @@ import (
 	"github.com/boltdb/bolt"
 	"github.com/danstis/go-read-burn/internal/version"
 	"github.com/gorilla/mux"
+	"github.com/kelseyhightower/envconfig"
 )
 
 var (
@@ -22,12 +23,26 @@ var (
 	templates *template.Template
 )
 
+type Config struct {
+	DBPath string `default:"db/secrets.db"`
+}
+
 // Main entry point for the app.
 func main() {
 	log.Printf("Version %q", version.Version)
 
+	// Read config
+	var config Config
 	var err error
-	db, err = bolt.Open(dbPath, 0644, nil)
+	if err = envconfig.Process("GRB", &config); err != nil {
+		log.Println(err)
+	}
+
+	// Open the DB
+	if err = createDBDir(config.DBPath); err != nil {
+		log.Fatalf("failed to create database directory: %v", err)
+	}
+	db, err = bolt.Open(config.DBPath, 0644, nil)
 	if err != nil {
 		log.Println(err)
 	}
@@ -80,6 +95,11 @@ func main() {
 		log.Println(err)
 	}
 	os.Exit(0)
+}
+
+func createDBDir(p string) error {
+	dir := path.Dir(p)
+	return os.MkdirAll(dir, os.ModePerm)
 }
 
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
