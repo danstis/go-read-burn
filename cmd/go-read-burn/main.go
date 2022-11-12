@@ -72,7 +72,9 @@ func main() {
 	log.Println("shutting down")
 	// Doesn't block if no connections, but will otherwise wait
 	// until the timeout deadline.
-	srv.Shutdown(ctx)
+	if err = srv.Shutdown(ctx); err != nil {
+		log.Println(err)
+	}
 	err = db.Close()
 	if err != nil {
 		log.Println(err)
