@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"embed"
 	"fmt"
 	"log"
 	"net/http"
@@ -17,8 +18,13 @@ import (
 	"github.com/kelseyhightower/envconfig"
 )
 
+//go:embed all:views/*
+var views embed.FS
+
+//go:embed static/*
+var static embed.FS
+
 var (
-	dbPath    = path.Join("..", "..", "db", "secrets.db")
 	db        *bolt.DB
 	templates *template.Template
 )
@@ -52,11 +58,11 @@ func main() {
 	r.HandleFunc("/", IndexHandler)
 	r.HandleFunc("/create", CreateHandler).Methods("POST")
 	r.HandleFunc("/get/{key}", SecretHandler)
-	s := http.StripPrefix("/static/", http.FileServer(http.Dir("./static/")))
+	s := http.StripPrefix("/static/", http.FileServer(http.FS(static)))
 	r.PathPrefix("/static/").Handler(s)
 	http.Handle("/", r)
 
-	templates = template.Must(template.ParseGlob("views/*.html"))
+	templates = template.Must(template.ParseFS(views, "views/*.html"))
 
 	srv := &http.Server{
 		Handler:      r,
