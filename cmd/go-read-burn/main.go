@@ -83,7 +83,10 @@ func main() {
 }
 
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
-	templates.ExecuteTemplate(w, "index.html", nil)
+	if err := templates.ExecuteTemplate(w, "index.html", nil); err != nil {
+		http.Error(w, "error generating json: "+err.Error(), 500)
+		return
+	}
 	// fmt.Fprintf(w, "Home")
 }
 
