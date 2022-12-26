@@ -20,4 +20,5 @@ COPY --from=builder /usr/local/go/lib/time/zoneinfo.zip /
 ENV TZ=Australia/Brisbane \
     ZONEINFO=/zoneinfo.zip
 VOLUME [ "/data" ]
+EXPOSE 80
 CMD [ "./go-read-burn" ]

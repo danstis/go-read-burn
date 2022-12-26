@@ -30,7 +30,9 @@ var (
 )
 
 type Config struct {
-	DBPath string `default:"db/secrets.db" split_words:"true"`
+	DBPath     string `default:"db/secrets.db" split_words:"true"`
+	ListenPort string `default:"80" split_words:"true"`
+	ListenHost string `default:"0.0.0.0" split_words:"true"`
 }
 
 // Main entry point for the app.
@@ -66,14 +68,14 @@ func main() {
 
 	srv := &http.Server{
 		Handler:      r,
-		Addr:         "0.0.0.0:8080",
+		Addr:         fmt.Sprintf("%s:%s", config.ListenHost, config.ListenPort),
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
 
 	// Run our server in a goroutine so that it doesn't block.
 	go func() {
-		log.Printf("Started server listing on %s", "0.0.0.0:8080")
+		log.Printf("Started server listing on %s:%s", config.ListenHost, config.ListenPort)
 		if err := srv.ListenAndServe(); err != nil {
 			log.Println(err)
 		}
