@@ -36,6 +36,8 @@ services:
       - "OTEL_SERVICE_NAME=${OTEL_SERVICE_NAME}"
       - "OTEL_HEALTH_URL=http://collector:13133"
       - "GRB_DB_PATH=/data/secrets.db"
+    ports:
+      - "8080:80"
     volumes:
       - "../db:/data"
     depends_on:
