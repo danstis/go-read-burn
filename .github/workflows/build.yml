@@ -3,7 +3,6 @@ name: Build and Test
 on:
   push:
     branches:
-      - main
       - beta
       - "feature/*"
       - "fix/*"
@@ -46,15 +45,11 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: ^1.20
-        id: go
-
       - name: Run go build
         run: go build -v ./...
-
   test:
     name: Test
     runs-on: ubuntu-latest
-    needs: [version]
     steps:
       - name: Check out code
         uses: actions/checkout@v3
@@ -62,23 +57,18 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: ^1.20
-
       - name: Test
         run: go test -v -race -coverprofile=coverage.out -covermode=atomic -json ./... > test-report.out
-
       - name: Go Vet
         run: go vet ./... 2> govet-report.out
-
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master # https://github.com/marketplace/actions/sonarcloud-scan
-        if: ${{ github.actor != 'dependabot[bot]' }}
+      - name: Upload test results
+        uses: actions/upload-artifact@master
         with:
-          args: >
-            -Dsonar.projectVersion=${{ needs.version.outputs.FullSemVer }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Needed to get PR information, if any
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
+          name: test-output
+          path: |
+            coverage.out
+            govet-report.out
+            test-report.out
   lint:
     name: Lint
     runs-on: ubuntu-latest
@@ -89,8 +79,40 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: ^1.20
-
       - name: Run golangci-lint # https://github.com/marketplace/actions/run-golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
           args: --out-format checkstyle > golint-report.out
+      - name: Upload lint results
+        uses: actions/upload-artifact@master
+        with:
+          name: lint-output
+          path: golint-report.out
+  sonar-cloud:
+    name: SonarCloud
+    runs-on: ubuntu-latest
+    needs: [version, lint, test]
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+      - name: Set up Go 1.x
+        uses: actions/setup-go@v3
+        with:
+          go-version: ^1.20
+      - uses: actions/download-artifact@master
+        with:
+          name: test-output
+          path: "."
+      - uses: actions/download-artifact@master
+        with:
+          name: lint-output
+          path: "."
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master # https://github.com/marketplace/actions/sonarcloud-scan
+        if: ${{ github.actor != 'dependabot[bot]' }}
+        with:
+          args: >
+            -Dsonar.projectVersion=${{ needs.version.outputs.FullSemVer }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
