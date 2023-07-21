@@ -1,8 +1,10 @@
+COMMIT := $(shell git rev-parse HEAD)
+DATE := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 VERSION := $(shell docker run --rm -v "$$(pwd):/repo" gittools/gitversion:5.11.1 /repo /output json /showvariable FullSemVer)
 include deploy/.env
 export
 run:
-	go run -ldflags "-s -w -X 'github.com/danstis/go-read-burn/internal/version.Version=$(VERSION)'" cmd/go-read-burn/main.go
+	go run -ldflags "-s -w -X 'main.version=$(VERSION)' -X 'main.commit=$(COMMIT)' -X 'main.date=$(DATE)'" cmd/go-read-burn/main.go
 
 up:
 	docker compose --project-directory deploy up --build --remove-orphans
