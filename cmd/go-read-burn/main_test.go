@@ -1,11 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
+	"text/template"
 )
 
 func TestCreateDBDir(t *testing.T) {
@@ -55,7 +57,13 @@ func TestIndexHandler(t *testing.T) {
 			status, http.StatusOK)
 	}
 
-	expected := `Home`
+	// Execute template to get expected HTML content
+	var index bytes.Buffer
+	if err := templates.ExecuteTemplate(&index, "index.html", nil); err != nil {
+		t.Fatal(err)
+	}
+
+	expected := index.String()
 	if rr.Body.String() != expected {
 		t.Errorf("handler returned unexpected body: got %v want %v",
 			rr.Body.String(), expected)

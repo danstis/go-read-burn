@@ -41,69 +41,108 @@ type Config struct {
 func main() {
 	log.Printf("Version %s - Commit: %s, Build Date: %s", version, commit, date)
 
-	// Read config
-	var config Config
-	var err error
-	if err = envconfig.Process("GRB", &config); err != nil {
-		log.Println(err)
+	config, err := loadConfig()
+	if err != nil {
+		log.Fatalf("failed to load config: %v", err)
 	}
 
-	// Open the DB
-	if err = createDBDir(config.DBPath); err != nil {
-		log.Fatalf("failed to create database directory: %v", err)
-	}
-	db, err = bolt.Open(config.DBPath, 0644, nil)
+	db, err := openDB(config.DBPath)
 	if err != nil {
-		log.Println(err)
+		log.Fatalf("failed to open DB: %v", err)
 	}
 	defer db.Close()
 
 	r := mux.NewRouter()
+	setupRoutes(r)
+
+	templates, err = parseTemplates()
+	if err != nil {
+		log.Fatalf("failed to parse templates: %v", err)
+	}
+
+	srv := createServer(config.ListenHost, config.ListenPort, r)
+
+	startServer(srv)
+
+	shutdownServer(srv, db)
+}
+
+func loadConfig() (Config, error) {
+	var config Config
+	err := envconfig.Process("GRB", &config)
+	if err != nil {
+		return config, err
+	}
+	return config, nil
+}
+
+func openDB(dbPath string) (*bolt.DB, error) {
+	err := createDBDir(dbPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create database directory: %w", err)
+	}
+	db, err := bolt.Open(dbPath, 0644, nil)
+	if err != nil {
+		return nil, err
+	}
+	return db, nil
+}
+
+func setupRoutes(r *mux.Router) {
 	r.HandleFunc("/", IndexHandler)
 	r.HandleFunc("/create", CreateHandler).Methods("POST")
 	r.HandleFunc("/get/{key}", SecretHandler)
 	s := http.StripPrefix("/static/", http.FileServer(http.FS(static)))
 	r.PathPrefix("/static/").Handler(s)
 	http.Handle("/", r)
+}
 
-	templates = template.Must(template.ParseFS(views, "views/*.html"))
+func parseTemplates() (*template.Template, error) {
+	templates, err := template.ParseFS(views, "views/*.html")
+	if err != nil {
+		return nil, err
+	}
+	return templates, nil
+}
 
+func createServer(listenHost, listenPort string, r *mux.Router) *http.Server {
 	srv := &http.Server{
 		Handler:      r,
-		Addr:         fmt.Sprintf("%s:%s", config.ListenHost, config.ListenPort),
+		Addr:         fmt.Sprintf("%s:%s", listenHost, listenPort),
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
+	return srv
+}
 
-	// Run our server in a goroutine so that it doesn't block.
+func startServer(srv *http.Server) {
 	go func() {
-		log.Printf("Started server listing on %s:%s", config.ListenHost, config.ListenPort)
+		log.Printf("Started server listing on %s", srv.Addr)
 		if err := srv.ListenAndServe(); err != nil {
 			log.Println(err)
 		}
 	}()
+}
 
+func shutdownServer(srv *http.Server, db *bolt.DB) {
 	c := make(chan os.Signal, 1)
-	// We'll accept graceful shutdowns when quit via SIGINT (Ctrl+C)
-	// SIGKILL, SIGQUIT or SIGTERM (Ctrl+/) will not be caught.
 	signal.Notify(c, os.Interrupt)
-
-	// Block until we receive our signal.
 	<-c
 
-	// Create a deadline to wait for.
-	ctx, cancel := context.WithTimeout(context.Background(), (30 * time.Second))
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
+
 	log.Println("shutting down")
-	// Doesn't block if no connections, but will otherwise wait
-	// until the timeout deadline.
-	if err = srv.Shutdown(ctx); err != nil {
+
+	if err := srv.Shutdown(ctx); err != nil {
 		log.Println(err)
 	}
-	err = db.Close()
+
+	err := db.Close()
 	if err != nil {
 		log.Println(err)
 	}
+
 	os.Exit(0)
 }
 
@@ -117,7 +156,6 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "error generating json: "+err.Error(), 500)
 		return
 	}
-	// fmt.Fprintf(w, "Home")
 }
 
 func CreateHandler(w http.ResponseWriter, r *http.Request) {
