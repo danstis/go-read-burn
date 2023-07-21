@@ -1,5 +1,5 @@
 COMMIT := $(shell git rev-parse HEAD)
-DATE := $(shell date)
+DATE := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 VERSION := $(shell docker run --rm -v "$$(pwd):/repo" gittools/gitversion:5.11.1 /repo /output json /showvariable FullSemVer)
 include deploy/.env
 export
