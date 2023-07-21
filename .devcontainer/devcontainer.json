@@ -51,13 +51,13 @@
         "ghcr.io/danstis/devcontainers-features/gitversion:0": {
             "version": "5.11.1"
         }
-    }
+    },
 
     // Use 'forwardPorts' to make a list of ports inside the container available locally.
-    // "forwardPorts": [],
+    "forwardPorts": [80],
 
     // Use 'postCreateCommand' to run commands after the container is created.
-    // "postCreateCommand": "go version",
+    "postCreateCommand": "go mod download"
 
     // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
     // "remoteUser": "root"
