@@ -28,3 +28,4 @@ _testmain.go
 # Project specific
 */secrets.db*
 deploy/.env
+.aider.*
