@@ -39,7 +39,7 @@ type Config struct {
 
 // Main entry point for the app.
 func main() {
-	log.Printf("Version %q, commit: %s, date: %s", version, commit, date)
+	log.Printf("Version %s - Commit: %s, Build Date: %s", version, commit, date)
 
 	// Read config
 	var config Config
