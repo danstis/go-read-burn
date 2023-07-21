@@ -18,13 +18,27 @@
                 "go.gopath": "/go"
             },
             "extensions": [
-                "GitHub.vscode-pull-request-github",
+                "Codeium.codeium",
+                "dakara.transformer",
+                "DavidAnson.vscode-markdownlint",
+                "eamodio.gitlens",
                 "EditorConfig.EditorConfig",
+                "github.vscode-github-actions",
+                "GitHub.vscode-pull-request-github",
                 "golang.go",
-                "ms-vscode.makefile-tools",
-                "hbenl.vscode-test-explorer",
                 "Gruntfuggly.todo-tree",
-                "dakara.transformer"
+                "hbenl.vscode-test-explorer",
+                "mhutchie.git-graph",
+                "michelemelluso.gitignore",
+                "ms-azuretools.vscode-docker",
+                "ms-vscode.makefile-tools",
+                "redhat.vscode-commons",
+                "redhat.vscode-yaml",
+                "riussi.code-stats-vscode",
+                "SonarSource.sonarlint-vscode",
+                "sourcegraph.cody-ai",
+                "streetsidesoftware.code-spell-checker",
+                "vscode-icons-team.vscode-icons"
             ]
         }
     },
