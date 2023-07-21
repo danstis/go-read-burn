@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/boltdb/bolt"
-	"github.com/danstis/go-read-burn/internal/version"
 	"github.com/gorilla/mux"
 	"github.com/kelseyhightower/envconfig"
 )
@@ -27,6 +26,9 @@ var static embed.FS
 var (
 	db        *bolt.DB
 	templates *template.Template
+	version   = "0.0.0-development"
+	commit    = "none"
+	date      = "unknown"
 )
 
 type Config struct {
@@ -37,7 +39,7 @@ type Config struct {
 
 // Main entry point for the app.
 func main() {
-	log.Printf("Version %q", version.Version)
+	log.Printf("Version %q, commit: %s, date: %s", version, commit, date)
 
 	// Read config
 	var config Config
