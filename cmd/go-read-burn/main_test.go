@@ -37,6 +37,9 @@ func TestCreateDBDir(t *testing.T) {
 }
 
 func TestIndexHandler(t *testing.T) {
+	// Initialize templates
+	templates = template.Must(template.ParseFS(views, "views/*.html"))
+
 	req, err := http.NewRequest("GET", "/", nil)
 	if err != nil {
 		t.Fatal(err)
