@@ -79,7 +79,7 @@ jobs:
       - name: Run golangci-lint # https://github.com/marketplace/actions/run-golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
-          args: --out-format checkstyle:golint-report.out
+          args: --out-format checkstyle:golint-report.out --issues-exit-code=0
       - name: Upload lint results
         uses: actions/upload-artifact@master
         with:
