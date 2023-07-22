@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -12,7 +11,7 @@ import (
 
 func TestCreateDBDir(t *testing.T) {
 	// Create a temporary directory for testing
-	tempDir, err := ioutil.TempDir("", "test")
+	tempDir, err := os.MkdirTemp("", "test")
 	if err != nil {
 		t.Fatalf("Failed to create temp directory: %v", err)
 	}
