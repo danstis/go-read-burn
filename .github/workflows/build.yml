@@ -58,7 +58,7 @@ jobs:
       - name: Test
         run: go test -v -race -coverprofile=coverage.out -covermode=atomic -json ./... | tee test-report.out
       - name: Go Vet
-        run: go vet ./... 2> govet-report.out
+        run: go vet ./... 2>&1 | tee govet-report.out
       - name: Upload test results
         uses: actions/upload-artifact@master
         with:
@@ -80,7 +80,7 @@ jobs:
       - name: Run golangci-lint # https://github.com/marketplace/actions/run-golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
-          args: --out-format checkstyle > golint-report.out
+          args: --out-format checkstyle | tee golint-report.out
       - name: Upload lint results
         uses: actions/upload-artifact@master
         with:
