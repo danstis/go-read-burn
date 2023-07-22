@@ -46,7 +46,7 @@ func main() {
 		log.Fatalf("failed to load config: %v", err)
 	}
 
-	db, err := openDB(config.DBPath)
+	db, err = openDB(config.DBPath)
 	if err != nil {
 		log.Fatalf("failed to open DB: %v", err)
 	}
