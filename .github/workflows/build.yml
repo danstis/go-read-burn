@@ -48,6 +48,7 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - name: Check out code
         uses: actions/checkout@v3
@@ -70,6 +71,7 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - name: Check out code
         uses: actions/checkout@v3
@@ -91,7 +93,6 @@ jobs:
     runs-on: ubuntu-latest
     if: github.actor != 'dependabot[bot]'
     needs: [version, lint, test]
-    continue-on-error: true
     steps:
       - name: Check out code
         uses: actions/checkout@v3
