@@ -17,6 +17,7 @@
                 "go.useLanguageServer": true,
                 "go.gopath": "/go"
             },
+            "shell": "zsh",
             "extensions": [
                 "Codeium.codeium",
                 "dakara.transformer",
@@ -31,7 +32,6 @@
                 "mhutchie.git-graph",
                 "michelemelluso.gitignore",
                 "ms-azuretools.vscode-docker",
-                "ms-vscode.makefile-tools",
                 "redhat.vscode-commons",
                 "redhat.vscode-yaml",
                 "riussi.code-stats-vscode",
