@@ -15,31 +15,37 @@
             "settings": {
                 "go.toolsManagement.checkForUpdates": "local",
                 "go.useLanguageServer": true,
-                "go.gopath": "/go"
+                "go.gopath": "/go",
+                "terminal.integrated.defaultProfile.linux": "zsh",
+                "terminal.integrated.profiles.linux": {
+                    "zsh": {
+                        "path": "/bin/zsh"
+                    }
+                }
             },
-            "shell": "zsh",
             "extensions": [
-                "Codeium.codeium",
-                "dakara.transformer",
-                "DavidAnson.vscode-markdownlint",
-                "eamodio.gitlens",
-                "EditorConfig.EditorConfig",
-                "github.vscode-github-actions",
-                "GitHub.vscode-pull-request-github",
-                "golang.go",
-                "Gruntfuggly.todo-tree",
-                "hbenl.vscode-test-explorer",
-                "mhutchie.git-graph",
-                "michelemelluso.gitignore",
-                "ms-azuretools.vscode-docker",
-                "redhat.vscode-commons",
-                "redhat.vscode-yaml",
-                "riussi.code-stats-vscode",
-                "SonarSource.sonarlint-vscode",
-                "sourcegraph.cody-ai",
-                "streetsidesoftware.code-spell-checker",
-                "vscode-icons-team.vscode-icons"
-            ]
+				"Codeium.codeium",
+				"dakara.transformer",
+				"DavidAnson.vscode-markdownlint",
+				"eamodio.gitlens",
+				"EditorConfig.EditorConfig",
+				"github.vscode-github-actions",
+				"GitHub.vscode-pull-request-github",
+				"golang.go",
+				"Gruntfuggly.todo-tree",
+				"hbenl.vscode-test-explorer",
+				"mhutchie.git-graph",
+				"michelemelluso.gitignore",
+				"ms-azuretools.vscode-docker",
+				"redhat.vscode-commons",
+				"redhat.vscode-yaml",
+				"riussi.code-stats-vscode",
+				"SonarSource.sonarlint-vscode",
+				"sourcegraph.cody-ai",
+				"streetsidesoftware.code-spell-checker",
+				"vscode-icons-team.vscode-icons",
+				"esbenp.prettier-vscode"
+			]
         }
     },
     "features": {
@@ -57,7 +63,7 @@
     "forwardPorts": [80],
 
     // Use 'postCreateCommand' to run commands after the container is created.
-    // "postCreateCommand": "sudo apt-get update && sudo apt-get install -y nodejs"
+    "postCreateCommand": "pwd && bash .devcontainer/scripts/install-tools.sh"
 
     // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
     // "remoteUser": "root"
