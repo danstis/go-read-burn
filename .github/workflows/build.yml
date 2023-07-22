@@ -3,10 +3,7 @@ name: Build and Test
 on:
   push:
     branches:
-      - main
-      - beta
-      - "feature/*"
-      - "fix/*"
+      - "*"
   pull_request:
     branches:
       - main
