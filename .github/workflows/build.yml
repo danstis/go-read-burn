@@ -22,7 +22,8 @@ jobs:
       FullSemVer: ${{ steps.gitversion.outputs.FullSemVer }}
       PreReleaseTag: ${{ steps.gitversion.outputs.PreReleaseTag }}
     steps:
-      - uses: actions/checkout@v3.5.3
+      - name: Check out code
+        uses: actions/checkout@v3.5.3
         with:
           fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
       - name: Install GitVersion
@@ -99,6 +100,8 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
       - name: Set up Go 1.x
         uses: actions/setup-go@v4
         with:
