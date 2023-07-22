@@ -1,0 +1,7 @@
+{
+    "sonarlint.connectedMode.project": {
+        "connectionId": "SonarLint",
+        "projectKey": "danstis_go-read-burn"
+    },
+    "cSpell.words": ["boltdb", "envconfig", "kelseyhightower"]
+}
