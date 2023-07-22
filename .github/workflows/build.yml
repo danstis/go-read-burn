@@ -91,6 +91,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.actor != 'dependabot[bot]'
     needs: [version, lint, test]
+    continue-on-error: true
     steps:
       - name: Check out code
         uses: actions/checkout@v3
