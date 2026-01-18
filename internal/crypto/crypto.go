@@ -1,11 +1,10 @@
-// Package crypto provides AES-256-CBC encryption and decryption functionality
+// Package crypto provides AES-256-GCM encryption and decryption functionality
 // for secure zero-knowledge secret storage. The server encrypts data but does
 // NOT store the decryption key - all encryption parameters are encoded in the
 // returned ID which is given only to the user.
 package crypto
 
 import (
-	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
@@ -21,15 +20,15 @@ const (
 	KeyLength = 8
 	// PasswordLength is the length of the password component in the ID (32 chars).
 	PasswordLength = 32
-	// IVLength is the length of the initialization vector component in the ID (16 chars).
-	IVLength = 16
+	// NonceLength is the length of the nonce component in the ID (16 chars).
+	NonceLength = 16
 	// SaltLength is the length of the salt component in the ID (16 chars).
 	SaltLength = 16
 	// FullIDLength is the total length of a complete ID (72 chars).
-	FullIDLength = KeyLength + PasswordLength + IVLength + SaltLength
+	FullIDLength = KeyLength + PasswordLength + NonceLength + SaltLength
 
-	aesBlockSize = 16
 	aesKeySize   = 32
+	gcmNonceSize = 12
 
 	// scrypt parameters per OWASP recommendations (2^17 minimum for N)
 	scryptN = 131072
@@ -46,22 +45,22 @@ var (
 	ErrInvalidIDCharacters = errors.New("invalid ID: contains non-base62 characters")
 	// ErrInvalidCiphertext is returned when decryption fails due to invalid data.
 	ErrInvalidCiphertext = errors.New("invalid ciphertext")
-	// ErrInvalidPadding is returned when PKCS7 unpadding fails.
-	ErrInvalidPadding = errors.New("invalid PKCS7 padding")
 	// ErrEmptyPlaintext is returned when attempting to encrypt empty data.
 	ErrEmptyPlaintext = errors.New("plaintext cannot be empty")
+	// ErrDecryptionFailed is returned when authenticated decryption fails.
+	ErrDecryptionFailed = errors.New("decryption failed: authentication error")
 )
 
 // GenerateID generates a new random ID containing all encryption parameters.
 // Returns the individual components and the full 72-character ID.
 //
-// The ID format is: [8-char Key] + [32-char Password] + [16-char IV] + [16-char Salt]
+// The ID format is: [8-char Key] + [32-char Password] + [16-char Nonce] + [16-char Salt]
 //
 //   - key: Used as database lookup key (not secret)
 //   - password: Used with scrypt to derive the AES encryption key (secret)
-//   - iv: Initialization vector for AES-CBC (ensures non-deterministic encryption)
+//   - nonce: Nonce for AES-GCM (ensures non-deterministic encryption)
 //   - salt: Salt for scrypt key derivation (adds additional randomness)
-func GenerateID() (key, password, iv, salt, fullID string, err error) {
+func GenerateID() (key, password, nonce, salt, fullID string, err error) {
 	key, err = generateRandomBase62(KeyLength)
 	if err != nil {
 		return "", "", "", "", "", fmt.Errorf("failed to generate key: %w", err)
@@ -72,9 +71,9 @@ func GenerateID() (key, password, iv, salt, fullID string, err error) {
 		return "", "", "", "", "", fmt.Errorf("failed to generate password: %w", err)
 	}
 
-	iv, err = generateRandomBase62(IVLength)
+	nonce, err = generateRandomBase62(NonceLength)
 	if err != nil {
-		return "", "", "", "", "", fmt.Errorf("failed to generate IV: %w", err)
+		return "", "", "", "", "", fmt.Errorf("failed to generate nonce: %w", err)
 	}
 
 	salt, err = generateRandomBase62(SaltLength)
@@ -82,13 +81,13 @@ func GenerateID() (key, password, iv, salt, fullID string, err error) {
 		return "", "", "", "", "", fmt.Errorf("failed to generate salt: %w", err)
 	}
 
-	fullID = key + password + iv + salt
-	return key, password, iv, salt, fullID, nil
+	fullID = key + password + nonce + salt
+	return key, password, nonce, salt, fullID, nil
 }
 
 // ParseID splits a 72-character ID into its components.
 // Returns an error if the ID is invalid.
-func ParseID(fullID string) (key, password, iv, salt string, err error) {
+func ParseID(fullID string) (key, password, nonce, salt string, err error) {
 	if len(fullID) != FullIDLength {
 		return "", "", "", "", ErrInvalidIDLength
 	}
@@ -101,16 +100,16 @@ func ParseID(fullID string) (key, password, iv, salt string, err error) {
 
 	key = fullID[0:KeyLength]
 	password = fullID[KeyLength : KeyLength+PasswordLength]
-	iv = fullID[KeyLength+PasswordLength : KeyLength+PasswordLength+IVLength]
-	salt = fullID[KeyLength+PasswordLength+IVLength : FullIDLength]
+	nonce = fullID[KeyLength+PasswordLength : KeyLength+PasswordLength+NonceLength]
+	salt = fullID[KeyLength+PasswordLength+NonceLength : FullIDLength]
 
-	return key, password, iv, salt, nil
+	return key, password, nonce, salt, nil
 }
 
-// Encrypt encrypts plaintext using AES-256-CBC with the given password, iv, and salt.
+// Encrypt encrypts plaintext using AES-256-GCM with the given password, nonce, and salt.
 // The password and salt are used with scrypt to derive a 32-byte AES key.
-// The plaintext is padded using PKCS7 before encryption.
-func Encrypt(plaintext, password, iv, salt string) ([]byte, error) {
+// AES-GCM provides authenticated encryption (confidentiality + integrity).
+func Encrypt(plaintext, password, nonce, salt string) ([]byte, error) {
 	if len(plaintext) == 0 {
 		return nil, ErrEmptyPlaintext
 	}
@@ -125,31 +124,28 @@ func Encrypt(plaintext, password, iv, salt string) ([]byte, error) {
 		return nil, fmt.Errorf("failed to create cipher: %w", err)
 	}
 
-	ivBytes := []byte(iv)
-	if len(ivBytes) < aesBlockSize {
-		return nil, fmt.Errorf("IV too short: got %d bytes, need %d", len(ivBytes), aesBlockSize)
+	aesGCM, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create GCM: %w", err)
 	}
-	ivBytes = ivBytes[:aesBlockSize]
 
-	paddedPlaintext := pkcs7Pad([]byte(plaintext), aesBlockSize)
+	nonceBytes := []byte(nonce)
+	if len(nonceBytes) < gcmNonceSize {
+		return nil, fmt.Errorf("nonce too short: got %d bytes, need %d", len(nonceBytes), gcmNonceSize)
+	}
+	nonceBytes = nonceBytes[:gcmNonceSize]
 
-	ciphertext := make([]byte, len(paddedPlaintext))
-	mode := cipher.NewCBCEncrypter(block, ivBytes)
-	mode.CryptBlocks(ciphertext, paddedPlaintext)
+	ciphertext := aesGCM.Seal(nil, nonceBytes, []byte(plaintext), nil)
 
 	return ciphertext, nil
 }
 
-// Decrypt decrypts ciphertext using AES-256-CBC with the given password, iv, and salt.
+// Decrypt decrypts ciphertext using AES-256-GCM with the given password, nonce, and salt.
 // The password and salt are used with scrypt to derive the AES key.
-// PKCS7 padding is removed after decryption.
-func Decrypt(ciphertext []byte, password, iv, salt string) (string, error) {
+// Returns an error if authentication fails (tampered ciphertext).
+func Decrypt(ciphertext []byte, password, nonce, salt string) (string, error) {
 	if len(ciphertext) == 0 {
 		return "", ErrInvalidCiphertext
-	}
-
-	if len(ciphertext)%aesBlockSize != 0 {
-		return "", fmt.Errorf("%w: ciphertext length must be multiple of %d", ErrInvalidCiphertext, aesBlockSize)
 	}
 
 	aesKey, err := deriveKey(password, salt)
@@ -162,56 +158,27 @@ func Decrypt(ciphertext []byte, password, iv, salt string) (string, error) {
 		return "", fmt.Errorf("failed to create cipher: %w", err)
 	}
 
-	ivBytes := []byte(iv)
-	if len(ivBytes) < aesBlockSize {
-		return "", fmt.Errorf("IV too short: got %d bytes, need %d", len(ivBytes), aesBlockSize)
-	}
-	ivBytes = ivBytes[:aesBlockSize]
-
-	plaintext := make([]byte, len(ciphertext))
-	mode := cipher.NewCBCDecrypter(block, ivBytes)
-	mode.CryptBlocks(plaintext, ciphertext)
-
-	unpaddedPlaintext, err := pkcs7Unpad(plaintext)
+	aesGCM, err := cipher.NewGCM(block)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to create GCM: %w", err)
 	}
 
-	return string(unpaddedPlaintext), nil
+	nonceBytes := []byte(nonce)
+	if len(nonceBytes) < gcmNonceSize {
+		return "", fmt.Errorf("nonce too short: got %d bytes, need %d", len(nonceBytes), gcmNonceSize)
+	}
+	nonceBytes = nonceBytes[:gcmNonceSize]
+
+	plaintext, err := aesGCM.Open(nil, nonceBytes, ciphertext, nil)
+	if err != nil {
+		return "", ErrDecryptionFailed
+	}
+
+	return string(plaintext), nil
 }
 
 func deriveKey(password, salt string) ([]byte, error) {
 	return scrypt.Key([]byte(password), []byte(salt), scryptN, scryptR, scryptP, aesKeySize)
-}
-
-func pkcs7Pad(data []byte, blockSize int) []byte {
-	padding := blockSize - (len(data) % blockSize)
-	padBytes := bytes.Repeat([]byte{byte(padding)}, padding)
-	return append(data, padBytes...)
-}
-
-func pkcs7Unpad(data []byte) ([]byte, error) {
-	if len(data) == 0 {
-		return nil, ErrInvalidPadding
-	}
-
-	paddingLen := int(data[len(data)-1])
-
-	if paddingLen == 0 || paddingLen > aesBlockSize {
-		return nil, ErrInvalidPadding
-	}
-
-	if paddingLen > len(data) {
-		return nil, ErrInvalidPadding
-	}
-
-	for i := len(data) - paddingLen; i < len(data); i++ {
-		if data[i] != byte(paddingLen) {
-			return nil, ErrInvalidPadding
-		}
-	}
-
-	return data[:len(data)-paddingLen], nil
 }
 
 func generateRandomBase62(length int) (string, error) {

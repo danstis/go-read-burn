@@ -7,7 +7,7 @@ import (
 )
 
 func TestGenerateID(t *testing.T) {
-	key, password, iv, salt, fullID, err := GenerateID()
+	key, password, nonce, salt, fullID, err := GenerateID()
 
 	if err != nil {
 		t.Fatalf("GenerateID() returned error: %v", err)
@@ -21,8 +21,8 @@ func TestGenerateID(t *testing.T) {
 		t.Errorf("password length = %d, want %d", len(password), PasswordLength)
 	}
 
-	if len(iv) != IVLength {
-		t.Errorf("iv length = %d, want %d", len(iv), IVLength)
+	if len(nonce) != NonceLength {
+		t.Errorf("nonce length = %d, want %d", len(nonce), NonceLength)
 	}
 
 	if len(salt) != SaltLength {
@@ -33,7 +33,7 @@ func TestGenerateID(t *testing.T) {
 		t.Errorf("fullID length = %d, want %d", len(fullID), FullIDLength)
 	}
 
-	expectedFullID := key + password + iv + salt
+	expectedFullID := key + password + nonce + salt
 	if fullID != expectedFullID {
 		t.Errorf("fullID = %s, want %s", fullID, expectedFullID)
 	}
@@ -64,22 +64,22 @@ func TestGenerateID_Uniqueness(t *testing.T) {
 
 func TestParseID(t *testing.T) {
 	tests := []struct {
-		name        string
-		fullID      string
-		wantKey     string
-		wantPass    string
-		wantIV      string
-		wantSalt    string
-		wantErr     error
+		name      string
+		fullID    string
+		wantKey   string
+		wantPass  string
+		wantNonce string
+		wantSalt  string
+		wantErr   error
 	}{
 		{
-			name:     "valid ID",
-			fullID:   "12345678" + strings.Repeat("a", 32) + strings.Repeat("b", 16) + strings.Repeat("c", 16),
-			wantKey:  "12345678",
-			wantPass: strings.Repeat("a", 32),
-			wantIV:   strings.Repeat("b", 16),
-			wantSalt: strings.Repeat("c", 16),
-			wantErr:  nil,
+			name:      "valid ID",
+			fullID:    "12345678" + strings.Repeat("a", 32) + strings.Repeat("b", 16) + strings.Repeat("c", 16),
+			wantKey:   "12345678",
+			wantPass:  strings.Repeat("a", 32),
+			wantNonce: strings.Repeat("b", 16),
+			wantSalt:  strings.Repeat("c", 16),
+			wantErr:   nil,
 		},
 		{
 			name:    "too short",
@@ -105,7 +105,7 @@ func TestParseID(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			key, password, iv, salt, err := ParseID(tt.fullID)
+			key, password, nonce, salt, err := ParseID(tt.fullID)
 
 			if tt.wantErr != nil {
 				if err != tt.wantErr {
@@ -124,8 +124,8 @@ func TestParseID(t *testing.T) {
 			if password != tt.wantPass {
 				t.Errorf("password = %s, want %s", password, tt.wantPass)
 			}
-			if iv != tt.wantIV {
-				t.Errorf("iv = %s, want %s", iv, tt.wantIV)
+			if nonce != tt.wantNonce {
+				t.Errorf("nonce = %s, want %s", nonce, tt.wantNonce)
 			}
 			if salt != tt.wantSalt {
 				t.Errorf("salt = %s, want %s", salt, tt.wantSalt)
@@ -135,12 +135,12 @@ func TestParseID(t *testing.T) {
 }
 
 func TestParseID_RoundTrip(t *testing.T) {
-	key, password, iv, salt, fullID, err := GenerateID()
+	key, password, nonce, salt, fullID, err := GenerateID()
 	if err != nil {
 		t.Fatalf("GenerateID() error: %v", err)
 	}
 
-	parsedKey, parsedPassword, parsedIV, parsedSalt, err := ParseID(fullID)
+	parsedKey, parsedPassword, parsedNonce, parsedSalt, err := ParseID(fullID)
 	if err != nil {
 		t.Fatalf("ParseID() error: %v", err)
 	}
@@ -151,8 +151,8 @@ func TestParseID_RoundTrip(t *testing.T) {
 	if parsedPassword != password {
 		t.Errorf("parsed password = %s, want %s", parsedPassword, password)
 	}
-	if parsedIV != iv {
-		t.Errorf("parsed iv = %s, want %s", parsedIV, iv)
+	if parsedNonce != nonce {
+		t.Errorf("parsed nonce = %s, want %s", parsedNonce, nonce)
 	}
 	if parsedSalt != salt {
 		t.Errorf("parsed salt = %s, want %s", parsedSalt, salt)
@@ -177,17 +177,17 @@ func TestEncryptDecrypt_RoundTrip(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, password, iv, salt, _, err := GenerateID()
+			_, password, nonce, salt, _, err := GenerateID()
 			if err != nil {
 				t.Fatalf("GenerateID() error: %v", err)
 			}
 
-			ciphertext, err := Encrypt(tt.plaintext, password, iv, salt)
+			ciphertext, err := Encrypt(tt.plaintext, password, nonce, salt)
 			if err != nil {
 				t.Fatalf("Encrypt() error: %v", err)
 			}
 
-			decrypted, err := Decrypt(ciphertext, password, iv, salt)
+			decrypted, err := Decrypt(ciphertext, password, nonce, salt)
 			if err != nil {
 				t.Fatalf("Decrypt() error: %v", err)
 			}
@@ -200,12 +200,12 @@ func TestEncryptDecrypt_RoundTrip(t *testing.T) {
 }
 
 func TestEncrypt_EmptyPlaintext(t *testing.T) {
-	_, password, iv, salt, _, err := GenerateID()
+	_, password, nonce, salt, _, err := GenerateID()
 	if err != nil {
 		t.Fatalf("GenerateID() error: %v", err)
 	}
 
-	_, err = Encrypt("", password, iv, salt)
+	_, err = Encrypt("", password, nonce, salt)
 	if err != ErrEmptyPlaintext {
 		t.Errorf("Encrypt() error = %v, want %v", err, ErrEmptyPlaintext)
 	}
@@ -216,12 +216,12 @@ func TestEncrypt_NonDeterministic(t *testing.T) {
 	ciphertexts := make([][]byte, 10)
 
 	for i := 0; i < 10; i++ {
-		_, password, iv, salt, _, err := GenerateID()
+		_, password, nonce, salt, _, err := GenerateID()
 		if err != nil {
 			t.Fatalf("GenerateID() error: %v", err)
 		}
 
-		ciphertext, err := Encrypt(plaintext, password, iv, salt)
+		ciphertext, err := Encrypt(plaintext, password, nonce, salt)
 		if err != nil {
 			t.Fatalf("Encrypt() error: %v", err)
 		}
@@ -238,7 +238,7 @@ func TestEncrypt_NonDeterministic(t *testing.T) {
 }
 
 func TestDecrypt_InvalidCiphertext(t *testing.T) {
-	_, password, iv, salt, _, err := GenerateID()
+	_, password, nonce, salt, _, err := GenerateID()
 	if err != nil {
 		t.Fatalf("GenerateID() error: %v", err)
 	}
@@ -249,13 +249,13 @@ func TestDecrypt_InvalidCiphertext(t *testing.T) {
 		wantErr    bool
 	}{
 		{"empty", []byte{}, true},
-		{"not multiple of block size", []byte{1, 2, 3, 4, 5}, true},
-		{"corrupted padding", make([]byte, 16), true},
+		{"too short for GCM tag", make([]byte, 10), true},
+		{"corrupted", make([]byte, 32), true},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := Decrypt(tt.ciphertext, password, iv, salt)
+			_, err := Decrypt(tt.ciphertext, password, nonce, salt)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Decrypt() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -264,18 +264,18 @@ func TestDecrypt_InvalidCiphertext(t *testing.T) {
 }
 
 func TestDecrypt_WrongParameters(t *testing.T) {
-	_, password1, iv1, salt1, _, err := GenerateID()
+	_, password1, nonce1, salt1, _, err := GenerateID()
 	if err != nil {
 		t.Fatalf("GenerateID() error: %v", err)
 	}
 
-	_, password2, iv2, salt2, _, err := GenerateID()
+	_, password2, nonce2, salt2, _, err := GenerateID()
 	if err != nil {
 		t.Fatalf("GenerateID() error: %v", err)
 	}
 
 	plaintext := "test secret"
-	ciphertext, err := Encrypt(plaintext, password1, iv1, salt1)
+	ciphertext, err := Encrypt(plaintext, password1, nonce1, salt1)
 	if err != nil {
 		t.Fatalf("Encrypt() error: %v", err)
 	}
@@ -283,23 +283,44 @@ func TestDecrypt_WrongParameters(t *testing.T) {
 	tests := []struct {
 		name     string
 		password string
-		iv       string
+		nonce    string
 		salt     string
 	}{
-		{"wrong password", password2, iv1, salt1},
-		{"wrong iv", password1, iv2, salt1},
-		{"wrong salt", password1, iv1, salt2},
-		{"all wrong", password2, iv2, salt2},
+		{"wrong password", password2, nonce1, salt1},
+		{"wrong nonce", password1, nonce2, salt1},
+		{"wrong salt", password1, nonce1, salt2},
+		{"all wrong", password2, nonce2, salt2},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			decrypted, err := Decrypt(ciphertext, tt.password, tt.iv, tt.salt)
-
-			if err == nil && decrypted == plaintext {
-				t.Errorf("Decrypt() should fail or return different plaintext with wrong parameters")
+			_, err := Decrypt(ciphertext, tt.password, tt.nonce, tt.salt)
+			if err == nil {
+				t.Error("Decrypt() should fail with wrong parameters")
 			}
 		})
+	}
+}
+
+func TestDecrypt_TamperedCiphertext(t *testing.T) {
+	_, password, nonce, salt, _, err := GenerateID()
+	if err != nil {
+		t.Fatalf("GenerateID() error: %v", err)
+	}
+
+	plaintext := "test secret"
+	ciphertext, err := Encrypt(plaintext, password, nonce, salt)
+	if err != nil {
+		t.Fatalf("Encrypt() error: %v", err)
+	}
+
+	tampered := make([]byte, len(ciphertext))
+	copy(tampered, ciphertext)
+	tampered[0] ^= 0xFF
+
+	_, err = Decrypt(tampered, password, nonce, salt)
+	if err != ErrDecryptionFailed {
+		t.Errorf("Decrypt() error = %v, want %v", err, ErrDecryptionFailed)
 	}
 }
 
@@ -342,67 +363,6 @@ func TestValidateID_GeneratedID(t *testing.T) {
 	}
 }
 
-func TestPKCS7Padding(t *testing.T) {
-	tests := []struct {
-		name      string
-		input     []byte
-		blockSize int
-		wantLen   int
-	}{
-		{"empty", []byte{}, 16, 16},
-		{"1 byte", []byte{1}, 16, 16},
-		{"15 bytes", bytes.Repeat([]byte{1}, 15), 16, 16},
-		{"16 bytes", bytes.Repeat([]byte{1}, 16), 16, 32},
-		{"17 bytes", bytes.Repeat([]byte{1}, 17), 16, 32},
-		{"31 bytes", bytes.Repeat([]byte{1}, 31), 16, 32},
-		{"32 bytes", bytes.Repeat([]byte{1}, 32), 16, 48},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			padded := pkcs7Pad(tt.input, tt.blockSize)
-
-			if len(padded) != tt.wantLen {
-				t.Errorf("padded length = %d, want %d", len(padded), tt.wantLen)
-			}
-
-			if len(padded)%tt.blockSize != 0 {
-				t.Errorf("padded length %d is not multiple of block size %d", len(padded), tt.blockSize)
-			}
-
-			unpadded, err := pkcs7Unpad(padded)
-			if err != nil {
-				t.Fatalf("pkcs7Unpad() error: %v", err)
-			}
-
-			if !bytes.Equal(unpadded, tt.input) {
-				t.Errorf("unpadded = %v, want %v", unpadded, tt.input)
-			}
-		})
-	}
-}
-
-func TestPKCS7Unpad_InvalidPadding(t *testing.T) {
-	tests := []struct {
-		name  string
-		input []byte
-	}{
-		{"empty", []byte{}},
-		{"zero padding byte", append(bytes.Repeat([]byte{1}, 15), 0)},
-		{"padding too large", append(bytes.Repeat([]byte{1}, 15), 17)},
-		{"inconsistent padding", append(bytes.Repeat([]byte{1}, 14), []byte{3, 2}...)},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			_, err := pkcs7Unpad(tt.input)
-			if err != ErrInvalidPadding {
-				t.Errorf("pkcs7Unpad() error = %v, want %v", err, ErrInvalidPadding)
-			}
-		})
-	}
-}
-
 func TestBase62Encode(t *testing.T) {
 	result := base62Encode([]byte{})
 	if result != "" {
@@ -437,7 +397,7 @@ func TestIsBase62Char(t *testing.T) {
 	}
 }
 
-func TestEncrypt_ShortIV(t *testing.T) {
+func TestEncrypt_ShortNonce(t *testing.T) {
 	_, password, _, salt, _, err := GenerateID()
 	if err != nil {
 		t.Fatalf("GenerateID() error: %v", err)
@@ -445,19 +405,19 @@ func TestEncrypt_ShortIV(t *testing.T) {
 
 	_, err = Encrypt("test", password, "short", salt)
 	if err == nil {
-		t.Error("Encrypt() should fail with short IV")
+		t.Error("Encrypt() should fail with short nonce")
 	}
 }
 
-func TestDecrypt_ShortIV(t *testing.T) {
+func TestDecrypt_ShortNonce(t *testing.T) {
 	_, password, _, salt, _, err := GenerateID()
 	if err != nil {
 		t.Fatalf("GenerateID() error: %v", err)
 	}
 
-	_, err = Decrypt(make([]byte, 16), password, "short", salt)
+	_, err = Decrypt(make([]byte, 32), password, "short", salt)
 	if err == nil {
-		t.Error("Decrypt() should fail with short IV")
+		t.Error("Decrypt() should fail with short nonce")
 	}
 }
 
@@ -471,12 +431,12 @@ func BenchmarkGenerateID(b *testing.B) {
 }
 
 func BenchmarkEncrypt(b *testing.B) {
-	_, password, iv, salt, _, _ := GenerateID()
+	_, password, nonce, salt, _, _ := GenerateID()
 	plaintext := strings.Repeat("x", 1000)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err := Encrypt(plaintext, password, iv, salt)
+		_, err := Encrypt(plaintext, password, nonce, salt)
 		if err != nil {
 			b.Fatalf("Encrypt() error: %v", err)
 		}
@@ -484,13 +444,13 @@ func BenchmarkEncrypt(b *testing.B) {
 }
 
 func BenchmarkDecrypt(b *testing.B) {
-	_, password, iv, salt, _, _ := GenerateID()
+	_, password, nonce, salt, _, _ := GenerateID()
 	plaintext := strings.Repeat("x", 1000)
-	ciphertext, _ := Encrypt(plaintext, password, iv, salt)
+	ciphertext, _ := Encrypt(plaintext, password, nonce, salt)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err := Decrypt(ciphertext, password, iv, salt)
+		_, err := Decrypt(ciphertext, password, nonce, salt)
 		if err != nil {
 			b.Fatalf("Decrypt() error: %v", err)
 		}
