@@ -1,6 +1,6 @@
 module github.com/danstis/go-read-burn
 
-go 1.24.0
+go 1.24
 
 require (
 	github.com/boltdb/bolt v1.3.1
