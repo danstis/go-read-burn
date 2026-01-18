@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/boltdb/bolt"
+	bolt "go.etcd.io/bbolt"
 )
 
 type Secret struct {
@@ -65,7 +65,7 @@ func Retrieve(db *bolt.DB, key string) (*Secret, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// If Timestamp is 0, it means the secret was empty/not found (because json unmarshal didn't run or data was empty)
 	// But Get() returns nil if not found, and we return nil error there.
 	// So if secret.Encrypted is empty and Timestamp is 0, we can assume it wasn't found.

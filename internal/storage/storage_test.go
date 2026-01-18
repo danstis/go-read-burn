@@ -7,13 +7,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/boltdb/bolt"
+	bolt "go.etcd.io/bbolt"
 )
 
 func setupTestDB(t *testing.T) *bolt.DB {
 	t.Helper()
 	tempDir := t.TempDir()
 	dbPath := filepath.Join(tempDir, "test.db")
+	// Use default BoltDB options which include mmap flags that might help with alignment
 	db, err := bolt.Open(dbPath, 0600, nil)
 	if err != nil {
 		t.Fatalf("Failed to open test DB: %v", err)

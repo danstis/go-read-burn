@@ -12,10 +12,10 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/boltdb/bolt"
 	"github.com/danstis/go-read-burn/internal/storage"
 	"github.com/gorilla/mux"
 	"github.com/kelseyhightower/envconfig"
+	bolt "go.etcd.io/bbolt"
 )
 
 //go:embed all:views/*
