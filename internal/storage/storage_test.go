@@ -162,3 +162,15 @@ func TestDeleteExpired(t *testing.T) {
 		t.Error("Expired secret was not deleted")
 	}
 }
+
+func TestDeleteExpired_NoBucket(t *testing.T) {
+	db := setupTestDB(t)
+	// Do NOT call InitBucket(db)
+
+	_, err := DeleteExpired(db, 1)
+	if err == nil {
+		t.Error("DeleteExpired should return error when bucket is missing")
+	} else if err.Error() != "bucket not found" {
+		t.Errorf("Expected 'bucket not found' error, got: %v", err)
+	}
+}

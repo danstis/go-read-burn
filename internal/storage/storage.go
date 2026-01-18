@@ -95,7 +95,7 @@ func DeleteExpired(db *bolt.DB, ttlDays int) (int, error) {
 	err := db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("secrets"))
 		if b == nil {
-			return nil
+			return fmt.Errorf("bucket not found")
 		}
 
 		var keysToDelete [][]byte
