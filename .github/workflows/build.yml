@@ -87,7 +87,7 @@ jobs:
         uses: golangci/golangci-lint-action@v9
         with:
           version: v2.8
-          args: --output.checkstyle.path=golint-report.out --issues-exit-code=0
+          args: --issues-exit-code=0
       - name: Upload lint results
         uses: actions/upload-artifact@master
         with:

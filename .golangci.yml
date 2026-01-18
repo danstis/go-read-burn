@@ -5,19 +5,15 @@ run:
   tests: false
 
 output:
-  format: colored-line-number
-  print-issued-lines: true
-  print-linter-name: true
-
-linters-settings:
-  govet:
-    check-shadowing: true
-  errcheck:
-    check-type-assertions: true
-    check-blank: true
+  formats:
+    text:
+      print-issued-lines: true
+      print-linter-name: true
+    checkstyle:
+      path: golint-report.out
 
 linters:
-  disable-all: true
+  default: none
   enable:
     - errcheck
     - govet
@@ -25,16 +21,20 @@ linters:
     - staticcheck
     - unused
     - gosec
+  
+  settings:
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
 
-issues:
-  exclude-rules:
-    - path: _test\.go
-      linters:
-        - gocyclo
-        - errcheck
-        - dupl
-        - gosec
-
-  exclude-dirs:
-    - db
-    - deploy
+  exclusions:
+    rules:
+      - path: _test\.go
+        linters:
+          - gocyclo
+          - errcheck
+          - dupl
+          - gosec
+    paths:
+      - ^db/
+      - ^deploy/
