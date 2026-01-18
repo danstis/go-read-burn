@@ -8,22 +8,68 @@
 
 go-read-burn is a shameless re-creation of the fantastic Node.JS app [Read2Burn](https://www.read2burn.com/) by Wemove, written in Go.
 
-## Contibuting
+## Contributing
 
-Feedback, Issues, Bugs and Contribution to this tool are welcome.
-For Bugs/Issues/Feature requests, please create an issue on the [GitHub issues page](https://github.com/danstis/go-read-burn/issues).
+Contributions are welcome — bug reports, feature requests, documentation improvements, and code changes.
 
-Want to contribute? Great:
+### Quick links
+- Issues: https://github.com/danstis/go-read-burn/issues
+- Pull Requests: https://github.com/danstis/go-read-burn/pulls
 
-1. Fork the repo using the Fork button at the top right of the GitHub repo.
-1. Clone the repo to your development machine, note the dependencies for this project are as follows:
-    - Go version 1.19 or above
-1. Create a new branch for the feature that you want to contribute.
-1. Develop your new feature as you see fit.
-1. Once you have a working copy of your code, create a pull request against this project.
+### Fork & pull request workflow (required)
+This project expects contributions to come via the standard GitHub fork + PR flow.
 
-### Standards
+1. Fork the repo.
+2. Clone your fork.
+3. Create a branch (`feature/...` or `fix/...`).
+4. Make changes and add/update tests where it makes sense.
+5. Push to your fork and open a PR back to this repo.
 
-- Projects should follow the folder structure from this standard project layout: [project-layout](https://github.com/golang-standards/project-layout)
-- This repo uses [Conventional Commits](https://www.conventionalcommits.org/) to ensure the build numbering is generated correctly
+### Development setup (local)
+
+**Requirements**
+- Go **1.20+** (see `go.mod`)
+- (Optional) Docker + Docker Compose
+- (Optional) `gitversion` if you want `make run` to include version metadata
+
+**Run locally**
+```bash
+go run ./cmd/go-read-burn
+```
+
+**Run with version info (uses gitversion)**
+```bash
+make run
+```
+
+**Run tests**
+```bash
+go test ./...
+```
+
+**Run tests like CI (race + coverage)**
+```bash
+go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+```
+
+**Static analysis**
+```bash
+go vet ./...
+```
+
+**Lint**
+```bash
+golangci-lint run
+```
+
+### Conventions
+- Project layout follows a standard Go layout (see `cmd/` and `internal/`).
+- Commit messages follow **Conventional Commits** (this impacts versioning/changelog):
+  https://www.conventionalcommits.org/
+
+### Community & security
+- Code of Conduct: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+- Security reporting: [SECURITY.md](SECURITY.md) (tracking issue: #126)
+
+For more details, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
