@@ -31,8 +31,8 @@ const (
 	aesBlockSize = 16
 	aesKeySize   = 32
 
-	// scrypt parameters per OWASP recommendations
-	scryptN = 32768
+	// scrypt parameters per OWASP recommendations (2^17 minimum for N)
+	scryptN = 131072
 	scryptR = 8
 	scryptP = 1
 )
