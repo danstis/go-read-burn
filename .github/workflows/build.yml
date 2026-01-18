@@ -83,10 +83,10 @@ jobs:
         uses: actions/setup-go@v6
         with:
           go-version: ^1.20
-      - name: Run golangci-lint # https://github.com/marketplace/actions/run-golangci-lint
+      - name: Run golangci-lint # https://github.com/marketplace/actions/golangci-lint
         uses: golangci/golangci-lint-action@v9
         with:
-          version: v2.1
+          version: v2.6
           args: --output.formats checkstyle:golint-report.out --issues-exit-code=0
       - name: Upload lint results
         uses: actions/upload-artifact@master
