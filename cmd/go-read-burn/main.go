@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/boltdb/bolt"
+	"github.com/danstis/go-read-burn/internal/storage"
 	"github.com/gorilla/mux"
 	"github.com/kelseyhightower/envconfig"
 )
@@ -51,6 +52,10 @@ func main() {
 		log.Fatalf("failed to open DB: %v", err)
 	}
 	defer db.Close()
+
+	if err := storage.InitBucket(db); err != nil {
+		log.Fatalf("failed to init secrets bucket: %v", err)
+	}
 
 	r := mux.NewRouter()
 	setupRoutes(r)
