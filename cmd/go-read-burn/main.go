@@ -86,7 +86,8 @@ func openDB(dbPath string) (*bolt.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create database directory: %w", err)
 	}
-	db, err := bolt.Open(dbPath, 0644, nil)
+	// Use 0600 (Read/Write for owner only) for security
+	db, err := bolt.Open(dbPath, 0600, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -153,7 +154,8 @@ func shutdownServer(srv *http.Server, db *bolt.DB) {
 
 func createDBDir(p string) error {
 	dir := path.Dir(p)
-	return os.MkdirAll(dir, os.ModePerm)
+	// Use 0700 (Read/Write/Execute for owner only) for security
+	return os.MkdirAll(dir, 0700)
 }
 
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
