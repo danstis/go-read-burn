@@ -1,0 +1,7 @@
+run:
+  tests: false
+
+issues:
+  exclude-dirs:
+    - db
+    - deploy
