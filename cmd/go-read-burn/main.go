@@ -51,7 +51,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to open DB: %v", err)
 	}
-	defer db.Close()
+	defer func() {
+		if err := db.Close(); err != nil {
+			log.Printf("failed to close DB: %v", err)
+		}
+	}()
 
 	if err := storage.InitBucket(db); err != nil {
 		log.Fatalf("failed to init secrets bucket: %v", err)
@@ -166,9 +170,13 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Create")
+	if _, err := fmt.Fprintf(w, "Create"); err != nil {
+		log.Printf("failed to write response: %v", err)
+	}
 }
 
 func SecretHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Get")
+	if _, err := fmt.Fprintf(w, "Get"); err != nil {
+		log.Printf("failed to write response: %v", err)
+	}
 }
