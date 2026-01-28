@@ -86,8 +86,8 @@ jobs:
       - name: Run golangci-lint # https://github.com/marketplace/actions/golangci-lint
         uses: golangci/golangci-lint-action@v9
         with:
-          version: v2.6
-          args: --output.checkstyle.path=golint-report.out --issues-exit-code=0
+          version: v2.8
+          args: --issues-exit-code=0
       - name: Upload lint results
         uses: actions/upload-artifact@master
         with:

@@ -1,0 +1,40 @@
+version: "2"
+
+run:
+  timeout: 5m
+  tests: false
+
+output:
+  formats:
+    text:
+      print-issued-lines: true
+      print-linter-name: true
+    checkstyle:
+      path: golint-report.out
+
+linters:
+  default: none
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - gosec
+  
+  settings:
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+
+  exclusions:
+    rules:
+      - path: _test\.go
+        linters:
+          - gocyclo
+          - errcheck
+          - dupl
+          - gosec
+    paths:
+      - ^db/
+      - ^deploy/

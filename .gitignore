@@ -29,3 +29,7 @@ _testmain.go
 deploy/.env
 .aider.*
 coverage.out
+golint-report.out
+govet-report.out
+test-report.out
+
