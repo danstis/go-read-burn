@@ -3,6 +3,7 @@ package storage
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"path/filepath"
 	"testing"
 	"time"
@@ -33,14 +34,14 @@ func TestInitBucket(t *testing.T) {
 
 	// Verify bucket exists
 	err = db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("secrets"))
+		b := tx.Bucket([]byte(BucketName))
 		if b == nil {
 			return bolt.ErrBucketNotFound
 		}
 		return nil
 	})
 	if err != nil {
-		t.Errorf("Bucket 'secrets' was not created")
+		t.Errorf("Bucket '%s' was not created", BucketName)
 	}
 }
 
@@ -100,7 +101,9 @@ func TestDelete(t *testing.T) {
 
 	key := "todelete"
 	data := []byte("data")
-	Store(db, key, data)
+	if err := Store(db, key, data); err != nil {
+		t.Fatalf("Store failed: %v", err)
+	}
 
 	if err := Delete(db, key); err != nil {
 		t.Fatalf("Delete failed: %v", err)
@@ -123,7 +126,9 @@ func TestDeleteExpired(t *testing.T) {
 
 	// 1. Store a fresh secret
 	freshKey := "fresh"
-	Store(db, freshKey, []byte("data"))
+	if err := Store(db, freshKey, []byte("data")); err != nil {
+		t.Fatalf("Store failed: %v", err)
+	}
 
 	// 2. Manually store an expired secret (2 days old)
 	expiredKey := "expired"
@@ -134,7 +139,7 @@ func TestDeleteExpired(t *testing.T) {
 	expiredData, _ := json.Marshal(expiredSecret)
 	
 	err := db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("secrets"))
+		b := tx.Bucket([]byte(BucketName))
 		return b.Put([]byte(expiredKey), expiredData)
 	})
 	if err != nil {
@@ -172,5 +177,153 @@ func TestDeleteExpired_NoBucket(t *testing.T) {
 		t.Error("DeleteExpired should return error when bucket is missing")
 	} else if err.Error() != "bucket not found" {
 		t.Errorf("Expected 'bucket not found' error, got: %v", err)
+	}
+}
+
+func TestStore_NoBucket(t *testing.T) {
+	db := setupTestDB(t)
+	// Do NOT call InitBucket(db)
+
+	err := Store(db, "key", []byte("data"))
+	if err == nil {
+		t.Error("Store should return error when bucket is missing")
+	} else if err.Error() != "bucket not found" {
+		t.Errorf("Expected 'bucket not found' error, got: %v", err)
+	}
+}
+
+func TestRetrieve_NoBucket(t *testing.T) {
+	db := setupTestDB(t)
+	// Do NOT call InitBucket(db)
+
+	_, err := Retrieve(db, "key")
+	if err == nil {
+		t.Error("Retrieve should return error when bucket is missing")
+	} else if err.Error() != "bucket not found" {
+		t.Errorf("Expected 'bucket not found' error, got: %v", err)
+	}
+}
+
+func TestDelete_NoBucket(t *testing.T) {
+	db := setupTestDB(t)
+	// Do NOT call InitBucket(db)
+
+	err := Delete(db, "key")
+	if err == nil {
+		t.Error("Delete should return error when bucket is missing")
+	} else if err.Error() != "bucket not found" {
+		t.Errorf("Expected 'bucket not found' error, got: %v", err)
+	}
+}
+
+func TestInitBucket_Idempotent(t *testing.T) {
+	db := setupTestDB(t)
+
+	// Call InitBucket multiple times - should not error
+	for i := 0; i < 3; i++ {
+		if err := InitBucket(db); err != nil {
+			t.Fatalf("InitBucket call %d failed: %v", i+1, err)
+		}
+	}
+}
+
+func TestStore_OverwriteExisting(t *testing.T) {
+	db := setupTestDB(t)
+	if err := InitBucket(db); err != nil {
+		t.Fatalf("Failed to init bucket: %v", err)
+	}
+
+	key := "overwrite-key"
+	originalData := []byte("original")
+	newData := []byte("updated")
+
+	// Store original
+	if err := Store(db, key, originalData); err != nil {
+		t.Fatalf("Store original failed: %v", err)
+	}
+
+	// Overwrite with new data
+	if err := Store(db, key, newData); err != nil {
+		t.Fatalf("Store overwrite failed: %v", err)
+	}
+
+	// Retrieve and verify it's the new data
+	secret, err := Retrieve(db, key)
+	if err != nil {
+		t.Fatalf("Retrieve failed: %v", err)
+	}
+	if secret == nil {
+		t.Fatal("Retrieve returned nil")
+	}
+
+	decoded, err := base64.StdEncoding.DecodeString(secret.Encrypted)
+	if err != nil {
+		t.Fatalf("Failed to decode: %v", err)
+	}
+	if string(decoded) != string(newData) {
+		t.Errorf("Got %s, want %s", string(decoded), string(newData))
+	}
+}
+
+func TestDeleteExpired_NoExpiredSecrets(t *testing.T) {
+	db := setupTestDB(t)
+	if err := InitBucket(db); err != nil {
+		t.Fatalf("Failed to init bucket: %v", err)
+	}
+
+	// Store only fresh secrets
+	for i := 0; i < 3; i++ {
+		key := fmt.Sprintf("fresh-%d", i)
+		if err := Store(db, key, []byte("data")); err != nil {
+			t.Fatalf("Store failed: %v", err)
+		}
+	}
+
+	// Run DeleteExpired - should delete nothing
+	deleted, err := DeleteExpired(db, 1)
+	if err != nil {
+		t.Fatalf("DeleteExpired failed: %v", err)
+	}
+	if deleted != 0 {
+		t.Errorf("Deleted %d records, expected 0", deleted)
+	}
+}
+
+func TestDeleteExpired_InvalidJSON(t *testing.T) {
+	db := setupTestDB(t)
+	if err := InitBucket(db); err != nil {
+		t.Fatalf("Failed to init bucket: %v", err)
+	}
+
+	// Store invalid JSON directly in bucket
+	err := db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(BucketName))
+		return b.Put([]byte("invalid"), []byte("not-json"))
+	})
+	if err != nil {
+		t.Fatalf("Failed to insert invalid data: %v", err)
+	}
+
+	// DeleteExpired should skip invalid JSON entries without error
+	deleted, err := DeleteExpired(db, 1)
+	if err != nil {
+		t.Fatalf("DeleteExpired failed: %v", err)
+	}
+	// Invalid JSON entry should not be deleted (it's skipped)
+	if deleted != 0 {
+		t.Errorf("Deleted %d records, expected 0", deleted)
+	}
+}
+
+func TestDelete_NonExistentKey(t *testing.T) {
+	db := setupTestDB(t)
+	if err := InitBucket(db); err != nil {
+		t.Fatalf("Failed to init bucket: %v", err)
+	}
+
+	// Delete a key that doesn't exist - should not error
+	err := Delete(db, "nonexistent-key")
+	if err != nil {
+		t.Errorf("Delete returned error for non-existent key: %v", err)
 	}
 }

@@ -9,6 +9,10 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
+// BucketName is the name of the BoltDB bucket used to store secrets
+const BucketName = "secrets"
+
+// Secret represents a stored encrypted secret with timestamp
 type Secret struct {
 	Timestamp int64  `json:"timestamp"`
 	Encrypted string `json:"encrypted"` // base64 encoded
@@ -17,7 +21,7 @@ type Secret struct {
 // InitBucket creates the secrets bucket if it doesn't exist
 func InitBucket(db *bolt.DB) error {
 	return db.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucketIfNotExists([]byte("secrets"))
+		_, err := tx.CreateBucketIfNotExists([]byte(BucketName))
 		return err
 	})
 }
@@ -25,7 +29,7 @@ func InitBucket(db *bolt.DB) error {
 // Store saves an encrypted secret with timestamp
 func Store(db *bolt.DB, key string, encrypted []byte) error {
 	return db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("secrets"))
+		b := tx.Bucket([]byte(BucketName))
 		if b == nil {
 			return fmt.Errorf("bucket not found")
 		}
@@ -49,7 +53,7 @@ func Store(db *bolt.DB, key string, encrypted []byte) error {
 func Retrieve(db *bolt.DB, key string) (*Secret, error) {
 	var secret Secret
 	err := db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("secrets"))
+		b := tx.Bucket([]byte(BucketName))
 		if b == nil {
 			return fmt.Errorf("bucket not found")
 		}
@@ -79,7 +83,7 @@ func Retrieve(db *bolt.DB, key string) (*Secret, error) {
 // Delete removes a secret by key (burn operation)
 func Delete(db *bolt.DB, key string) error {
 	return db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("secrets"))
+		b := tx.Bucket([]byte(BucketName))
 		if b == nil {
 			return fmt.Errorf("bucket not found")
 		}
@@ -93,7 +97,7 @@ func DeleteExpired(db *bolt.DB, ttlDays int) (int, error) {
 	cutoff := time.Now().Add(time.Duration(-ttlDays) * 24 * time.Hour).UnixMilli()
 
 	err := db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("secrets"))
+		b := tx.Bucket([]byte(BucketName))
 		if b == nil {
 			return fmt.Errorf("bucket not found")
 		}
