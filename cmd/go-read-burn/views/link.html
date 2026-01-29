@@ -23,7 +23,7 @@
             <div class="mt-3">
                 <div class="alert alert-success" role="alert">
                     <h4 class="alert-heading">Secret link created successfully!</h4>
-                    <p class="mb-0">Share this link. It can only be viewed once and expires in 100 days.</p>
+                    <p class="mb-0">Share this link. It can only be viewed once and will expire automatically.</p>
                 </div>
                 <div class="mb-3">
                     <label for="shareUrl" class="form-label">Your shareable link:</label>
@@ -48,7 +48,7 @@
     </div>
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.1/dist/jquery.min.js"
         integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
-    <script language="JavaScript" type="text/javascript">
+    <script type="text/javascript">
         // Copy to clipboard functionality with modern API and fallback
         document.getElementById('copyButton').addEventListener('click', function() {
             const urlInput = document.getElementById('shareUrl');
