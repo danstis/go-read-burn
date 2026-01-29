@@ -4,12 +4,12 @@ import (
 	"context"
 	"embed"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"path"
-	"html/template"
 	"time"
 
 	"github.com/boltdb/bolt"
