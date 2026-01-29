@@ -1,0 +1,39 @@
+{
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true
+  },
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Read(./**)",
+      "Write(./**)",
+      "Edit(./**)",
+      "Glob(./**)",
+      "Grep(./**)",
+      "Read(C:\\Users\\dan\\github.com\\danstis\\go-read-burn\\.auto-claude\\worktrees\\tasks\\001-phase-1-create-html-templates-for-link-secret-and-/**)",
+      "Write(C:\\Users\\dan\\github.com\\danstis\\go-read-burn\\.auto-claude\\worktrees\\tasks\\001-phase-1-create-html-templates-for-link-secret-and-/**)",
+      "Edit(C:\\Users\\dan\\github.com\\danstis\\go-read-burn\\.auto-claude\\worktrees\\tasks\\001-phase-1-create-html-templates-for-link-secret-and-/**)",
+      "Glob(C:\\Users\\dan\\github.com\\danstis\\go-read-burn\\.auto-claude\\worktrees\\tasks\\001-phase-1-create-html-templates-for-link-secret-and-/**)",
+      "Grep(C:\\Users\\dan\\github.com\\danstis\\go-read-burn\\.auto-claude\\worktrees\\tasks\\001-phase-1-create-html-templates-for-link-secret-and-/**)",
+      "Read(C:\\Users\\dan\\github.com\\danstis\\go-read-burn\\.auto-claude\\worktrees\\tasks\\001-phase-1-create-html-templates-for-link-secret-and-\\.auto-claude\\specs\\001-phase-1-create-html-templates-for-link-secret-and-/**)",
+      "Write(C:\\Users\\dan\\github.com\\danstis\\go-read-burn\\.auto-claude\\worktrees\\tasks\\001-phase-1-create-html-templates-for-link-secret-and-\\.auto-claude\\specs\\001-phase-1-create-html-templates-for-link-secret-and-/**)",
+      "Edit(C:\\Users\\dan\\github.com\\danstis\\go-read-burn\\.auto-claude\\worktrees\\tasks\\001-phase-1-create-html-templates-for-link-secret-and-\\.auto-claude\\specs\\001-phase-1-create-html-templates-for-link-secret-and-/**)",
+      "Read(C:\\Users\\dan\\github.com\\danstis\\go-read-burn\\.auto-claude/**)",
+      "Write(C:\\Users\\dan\\github.com\\danstis\\go-read-burn\\.auto-claude/**)",
+      "Edit(C:\\Users\\dan\\github.com\\danstis\\go-read-burn\\.auto-claude/**)",
+      "Glob(C:\\Users\\dan\\github.com\\danstis\\go-read-burn\\.auto-claude/**)",
+      "Grep(C:\\Users\\dan\\github.com\\danstis\\go-read-burn\\.auto-claude/**)",
+      "Bash(*)",
+      "WebFetch(*)",
+      "WebSearch(*)",
+      "mcp__context7__resolve-library-id(*)",
+      "mcp__context7__get-library-docs(*)",
+      "mcp__graphiti-memory__search_nodes(*)",
+      "mcp__graphiti-memory__search_facts(*)",
+      "mcp__graphiti-memory__add_episode(*)",
+      "mcp__graphiti-memory__get_episodes(*)",
+      "mcp__graphiti-memory__get_entity_edge(*)"
+    ]
+  }
+}
