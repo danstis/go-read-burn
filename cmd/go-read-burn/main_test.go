@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
-	"text/template"
+	"html/template"
 )
 
 func TestCreateDBDir(t *testing.T) {

@@ -14,7 +14,7 @@
     <nav class="navbar navbar-dark bg-dark">
         <div class="container-fluid">
             <div class="container-md center">
-                <a class="navbar-brand" href="#">go-read-burn</a>
+                <a class="navbar-brand" href="/">go-read-burn</a>
             </div>
         </div>
     </nav>
@@ -23,13 +23,13 @@
             <div class="mt-3">
                 <div class="alert alert-success" role="alert">
                     <h4 class="alert-heading">Secret link created successfully!</h4>
-                    <p class="mb-0">Share this link. It can only be viewed once and expires in 100 days.</p>
+                    <p class="mb-0">Share this link. It can only be viewed once and expires in {{.ExpiryDays}} days.</p>
                 </div>
                 <div class="mb-3">
                     <label for="shareUrl" class="form-label">Your shareable link:</label>
                     <div class="input-group">
                         <input type="text" class="form-control" id="shareUrl" value="{{.ShareURL}}" readonly>
-                        <button class="btn btn-primary" type="button" id="copyButton" aria-label="Copy link to clipboard">
+                        <button class="btn btn-primary" type="button" id="copyButton" aria-label="Copy to Clipboard">
                             Copy to Clipboard
                         </button>
                     </div>
@@ -46,14 +46,12 @@
             </div>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.1/dist/jquery.min.js"
-        integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
-    <script language="JavaScript" type="text/javascript">
+    <script type="text/javascript">
         // Copy to clipboard functionality with modern API and fallback
-        document.getElementById('copyButton').addEventListener('click', function() {
+        document.getElementById('copyButton').addEventListener('click', function(event) {
             const urlInput = document.getElementById('shareUrl');
             const feedback = document.getElementById('copyFeedback');
-            const button = this;
+            const button = event.currentTarget;
 
             // Try modern Clipboard API first
             if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -104,7 +102,7 @@
                 }
 
                 // Remove selection
-                window.getSelection().removeAllRanges();
+                globalThis.getSelection().removeAllRanges();
             }
         });
     </script>

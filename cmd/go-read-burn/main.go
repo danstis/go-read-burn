@@ -9,7 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"path"
-	"text/template"
+	"html/template"
 	"time"
 
 	"github.com/boltdb/bolt"
