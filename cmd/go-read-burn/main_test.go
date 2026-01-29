@@ -2,11 +2,11 @@ package main
 
 import (
 	"bytes"
+	"html/template"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
-	"text/template"
 )
 
 func TestCreateDBDir(t *testing.T) {
