@@ -29,7 +29,7 @@
                     <label for="shareUrl" class="form-label">Your shareable link:</label>
                     <div class="input-group">
                         <input type="text" class="form-control" id="shareUrl" value="{{.ShareURL}}" readonly>
-                        <button class="btn btn-primary" type="button" id="copyButton" aria-label="Copy link to clipboard">
+                        <button class="btn btn-primary" type="button" id="copyButton">
                             Copy to Clipboard
                         </button>
                     </div>
@@ -50,10 +50,10 @@
         integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
     <script type="text/javascript">
         // Copy to clipboard functionality with modern API and fallback
-        document.getElementById('copyButton').addEventListener('click', function() {
+        document.getElementById('copyButton').addEventListener('click', function(event) {
             const urlInput = document.getElementById('shareUrl');
             const feedback = document.getElementById('copyFeedback');
-            const button = this;
+            const button = event.currentTarget;
 
             // Try modern Clipboard API first
             if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -104,7 +104,7 @@
                 }
 
                 // Remove selection
-                window.getSelection().removeAllRanges();
+                globalThis.getSelection().removeAllRanges();
             }
         });
     </script>
