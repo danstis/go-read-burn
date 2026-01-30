@@ -12,6 +12,9 @@ import (
 // BucketName is the name of the BoltDB bucket used to store secrets
 const BucketName = "secrets"
 
+// ErrBucketNotFound is the error message when the secrets bucket is not found
+const ErrBucketNotFound = "bucket not found"
+
 // Secret represents a stored encrypted secret with timestamp
 type Secret struct {
 	Timestamp int64  `json:"timestamp"`
@@ -31,7 +34,7 @@ func Store(db *bolt.DB, key string, encrypted []byte) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(BucketName))
 		if b == nil {
-			return fmt.Errorf("bucket not found")
+			return fmt.Errorf(ErrBucketNotFound)
 		}
 
 		encoded := base64.StdEncoding.EncodeToString(encrypted)
@@ -55,7 +58,7 @@ func Retrieve(db *bolt.DB, key string) (*Secret, error) {
 	err := db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(BucketName))
 		if b == nil {
-			return fmt.Errorf("bucket not found")
+			return fmt.Errorf(ErrBucketNotFound)
 		}
 
 		data := b.Get([]byte(key))
@@ -85,7 +88,7 @@ func Delete(db *bolt.DB, key string) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(BucketName))
 		if b == nil {
-			return fmt.Errorf("bucket not found")
+			return fmt.Errorf(ErrBucketNotFound)
 		}
 		return b.Delete([]byte(key))
 	})
@@ -99,7 +102,7 @@ func DeleteExpired(db *bolt.DB, ttlDays int) (int, error) {
 	err := db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(BucketName))
 		if b == nil {
-			return fmt.Errorf("bucket not found")
+			return fmt.Errorf(ErrBucketNotFound)
 		}
 
 		var keysToDelete [][]byte
@@ -107,7 +110,7 @@ func DeleteExpired(db *bolt.DB, ttlDays int) (int, error) {
 		err := b.ForEach(func(k, v []byte) error {
 			var secret Secret
 			if err := json.Unmarshal(v, &secret); err != nil {
-				return nil
+				return nil // Skip invalid JSON entries
 			}
 
 			if secret.Timestamp < cutoff {
@@ -123,7 +126,7 @@ func DeleteExpired(db *bolt.DB, ttlDays int) (int, error) {
 		}
 
 		for _, k := range keysToDelete {
-			if err := b.Delete(k); err == nil {
+			if b.Delete(k) == nil {
 				count++
 			}
 		}
