@@ -3,6 +3,7 @@ package storage
 import (
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -34,7 +35,7 @@ func Store(db *bolt.DB, key string, encrypted []byte) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(BucketName))
 		if b == nil {
-			return fmt.Errorf(ErrBucketNotFound)
+			return errors.New(ErrBucketNotFound)
 		}
 
 		encoded := base64.StdEncoding.EncodeToString(encrypted)
@@ -58,7 +59,7 @@ func Retrieve(db *bolt.DB, key string) (*Secret, error) {
 	err := db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(BucketName))
 		if b == nil {
-			return fmt.Errorf(ErrBucketNotFound)
+			return errors.New(ErrBucketNotFound)
 		}
 
 		data := b.Get([]byte(key))
@@ -88,7 +89,7 @@ func Delete(db *bolt.DB, key string) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(BucketName))
 		if b == nil {
-			return fmt.Errorf(ErrBucketNotFound)
+			return errors.New(ErrBucketNotFound)
 		}
 		return b.Delete([]byte(key))
 	})
@@ -102,7 +103,7 @@ func DeleteExpired(db *bolt.DB, ttlDays int) (int, error) {
 	err := db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(BucketName))
 		if b == nil {
-			return fmt.Errorf(ErrBucketNotFound)
+			return errors.New(ErrBucketNotFound)
 		}
 
 		var keysToDelete [][]byte
