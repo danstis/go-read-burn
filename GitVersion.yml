@@ -1,4 +1,12 @@
 workflow: TrunkBased/preview1
+strategies:
+  - Fallback
+  - ConfiguredNextVersion
+  - MergeMessage
+  - TaggedCommit
+  - TrackReleaseBranches
+  - VersionInBranchName
+  - Mainline
 major-version-bump-message: \+semver:\s?(breaking|major)|(BREAKING CHANGES?|major)(\(.*?\))?:\s?
 minor-version-bump-message: \+semver:\s?(feature|minor)|(feature|minor|feat)(\(.*?\))?:\s?
 patch-version-bump-message: \+semver:\s?(fix|patch)|(fix|patch|hotfix)(\(.*?\))?:\s?
