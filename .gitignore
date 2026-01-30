@@ -24,19 +24,24 @@ _testmain.go
 *.prof
 /debug
 
-# Project specific
-*/secrets.db*
-deploy/.env
-.aider.*
-coverage.out
-
-# Auto Claude data directory
+# Auto Claude
 .auto-claude/
-
-# Auto Claude generated files
 .auto-claude-security.json
 .auto-claude-status
 .claude_settings.json
 .worktrees/
 .security-key
 logs/security/
+
+# Claude
+.claude/
+
+# oh-my-claudecode
+.omc/
+.mcp.json
+
+# Project specific
+*/secrets.db*
+deploy/.env
+coverage.out
+
