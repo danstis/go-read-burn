@@ -1,4 +1,10 @@
-workflow: TrunkBased/preview1
+mode: Mainline
+branches:
+  main:
+    mode: ContinuousDeployment
+    tag: ''
+  feature:
+    mode: ContinuousDeployment
 major-version-bump-message: \+semver:\s?(breaking|major)|(BREAKING CHANGES?|major)(\(.*?\))?:\s?
 minor-version-bump-message: \+semver:\s?(feature|minor)|(feature|minor|feat)(\(.*?\))?:\s?
 patch-version-bump-message: \+semver:\s?(fix|patch)|(fix|patch|hotfix)(\(.*?\))?:\s?
