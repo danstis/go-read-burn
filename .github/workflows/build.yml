@@ -19,8 +19,8 @@ jobs:
     permissions:
       contents: write
     outputs:
-      FullSemVer: ${{ steps.gitversion.outputs.FullSemVer }}
-      PreReleaseTag: ${{ steps.gitversion.outputs.PreReleaseTag }}
+      FullSemVer: ${{ steps.set-version.outputs.FullSemVer }}
+      PreReleaseTag: ${{ steps.set-version.outputs.PreReleaseTag }}
     steps:
       - name: Check out code
         uses: actions/checkout@v6
@@ -32,12 +32,25 @@ jobs:
         with:
           versionSpec: "6.3.0"
       - name: Use GitVersion
-        id: gitversion # step id used as reference for output values
+        id: gitversion
+        continue-on-error: true
         uses: gittools/actions/gitversion/execute@v4.2.0
+      - name: Set version (GitVersion or fallback)
+        id: set-version
+        run: |
+          if [ "${{ steps.gitversion.outcome }}" = "success" ]; then
+            echo "FullSemVer=${{ steps.gitversion.outputs.FullSemVer }}" >> $GITHUB_OUTPUT
+            echo "PreReleaseTag=${{ steps.gitversion.outputs.PreReleaseTag }}" >> $GITHUB_OUTPUT
+            echo "::notice::Using GitVersion: ${{ steps.gitversion.outputs.FullSemVer }}"
+          else
+            echo "FullSemVer=0.0.0-development" >> $GITHUB_OUTPUT
+            echo "PreReleaseTag=development" >> $GITHUB_OUTPUT
+            echo "::warning::GitVersion failed, using fallback version: 0.0.0-development"
+          fi
       - name: Create annotation for build error
         run: |
-          echo "::notice::FullSemVer ${{ steps.gitversion.outputs.FullSemVer }}"
-          echo "::notice::PreReleaseTag ${{ steps.gitversion.outputs.PreReleaseTag }}"
+          echo "::notice::FullSemVer ${{ steps.set-version.outputs.FullSemVer }}"
+          echo "::notice::PreReleaseTag ${{ steps.set-version.outputs.PreReleaseTag }}"
   build:
     name: Build
     runs-on: ubuntu-latest
