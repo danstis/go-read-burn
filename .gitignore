@@ -24,6 +24,22 @@ _testmain.go
 *.prof
 /debug
 
+# Auto Claude
+.auto-claude/
+.auto-claude-security.json
+.auto-claude-status
+.claude_settings.json
+.worktrees/
+.security-key
+logs/security/
+
+# Claude
+.claude/
+
+# oh-my-claudecode
+.omc/
+.mcp.json
+
 # Project specific
 */secrets.db*
 deploy/.env
@@ -33,14 +49,3 @@ golint-report.out
 govet-report.out
 test-report.out
 
-
-# Auto Claude data directory
-.auto-claude/
-
-# Auto Claude generated files
-.auto-claude-security.json
-.auto-claude-status
-.claude_settings.json
-.worktrees/
-.security-key
-logs/security/
