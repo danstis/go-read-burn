@@ -12,9 +12,10 @@ import (
 	"path"
 	"time"
 
-	"github.com/boltdb/bolt"
+	"github.com/danstis/go-read-burn/internal/storage"
 	"github.com/gorilla/mux"
 	"github.com/kelseyhightower/envconfig"
+	bolt "go.etcd.io/bbolt"
 )
 
 //go:embed all:views/*
@@ -50,7 +51,15 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to open DB: %v", err)
 	}
-	defer db.Close()
+	defer func() {
+		if err := db.Close(); err != nil {
+			log.Printf("failed to close DB: %v", err)
+		}
+	}()
+
+	if err := storage.InitBucket(db); err != nil {
+		log.Fatalf("failed to init secrets bucket: %v", err)
+	}
 
 	r := mux.NewRouter()
 	setupRoutes(r)
@@ -81,7 +90,8 @@ func openDB(dbPath string) (*bolt.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create database directory: %w", err)
 	}
-	db, err := bolt.Open(dbPath, 0644, nil)
+	// Use 0600 (Read/Write for owner only) for security
+	db, err := bolt.Open(dbPath, 0600, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +158,8 @@ func shutdownServer(srv *http.Server, db *bolt.DB) {
 
 func createDBDir(p string) error {
 	dir := path.Dir(p)
-	return os.MkdirAll(dir, os.ModePerm)
+	// Use 0700 (Read/Write/Execute for owner only) for security
+	return os.MkdirAll(dir, 0700)
 }
 
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
@@ -159,9 +170,13 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Create")
+	if _, err := fmt.Fprintf(w, "Create"); err != nil {
+		log.Printf("failed to write response: %v", err)
+	}
 }
 
 func SecretHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Get")
+	if _, err := fmt.Fprintf(w, "Get"); err != nil {
+		log.Printf("failed to write response: %v", err)
+	}
 }
