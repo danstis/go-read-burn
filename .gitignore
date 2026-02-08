@@ -43,5 +43,9 @@ logs/security/
 # Project specific
 */secrets.db*
 deploy/.env
+.aider.*
 coverage.out
+golint-report.out
+govet-report.out
+test-report.out
 
