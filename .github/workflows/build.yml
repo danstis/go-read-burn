@@ -116,7 +116,7 @@ jobs:
           name: lint-output
           path: "."
       - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@v7.0.0 # https://github.com/marketplace/actions/sonarcloud-scan
+        uses: SonarSource/sonarqube-scan-action@v8.0.0 # https://github.com/marketplace/actions/sonarcloud-scan
         with:
           args: >
             -Dsonar.projectVersion=${{ needs.version.outputs.FullSemVer }}
